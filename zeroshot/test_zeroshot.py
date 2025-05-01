@@ -14,7 +14,8 @@ from zeroshot_val import zeroshot_eval
 
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
-device_id = 'cuda'
+# device_id = 'cuda'
+device_id= torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 config = yaml.load(open("zeroshot_config.yaml", "r"), Loader=yaml.FullLoader)
 
@@ -23,7 +24,7 @@ random.seed(0)
 np.random.seed(0)
 
 model = utils_builder.ECGCLIP(config['network'])
-ckpt = 'your_ckpt_path'
+ckpt = '/home/baljit/Downloads/vit_tiny_best_ckpt.pth'
 ckpt = torch.load(f'{ckpt}', map_location='cpu')
 model.load_state_dict(ckpt)
 model = model.to(device_id)
@@ -43,6 +44,10 @@ for set_name in args_zeroshot_eval['test_sets'].keys():
         avg_f1 += f1
         avg_acc += acc
         avg_auc += auc
+
+        print("avg_f1_score:",avg_f1)
+        print("avg_acc_score:",avg_acc)
+        print("avg_auc_score:",avg_auc)
 
 avg_f1 = avg_f1/len(args_zeroshot_eval['test_sets'].keys())
 avg_acc = avg_acc/len(args_zeroshot_eval['test_sets'].keys())

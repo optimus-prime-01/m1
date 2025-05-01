@@ -14,7 +14,7 @@ network:
 
 dataset:
   dataset_name: 'mimic'
-  data_path: 'your_path/' # add your image file path here
+  data_path: '/home/baljit/Desktop/mini-porject/' # add your image file path here
 
 # params for trainer
 trainer:
@@ -32,11 +32,11 @@ optimizer:
 # params for zeroshot eval
 zeroshot:
   prompt_type: 'CKEPE'
-  prompt_dict: 'your_path/MERL/zeroshot/CKEPE_prompt.json'
+  prompt_dict: '/home/baljit/Desktop/mini-porject/MERL-ICML2024/zeroshot/CKEPE_prompt.json'
   batch_size: 256
   num_workers: 8
-  meta_data_path: 'your_path/downstream'
-  meta_split_path: 'your_path/MERL/finetune/data_split'
+  meta_data_path: '/home/baljit/Desktop/mini-porject/MERL-ICML2024/downstream'
+  meta_split_path: '/home/baljit/Desktop/mini-porject/MERL-ICML2024/finetune/data_split'
   
   test_sets:
   ###
@@ -44,25 +44,25 @@ zeroshot:
       data_path: 'ptbxl'
       split_path: 'ptbxl/super_class/ptbxl_super_class_test.csv'
   ###
-    ptbxl_sub_class:
-      data_path: 'ptbxl'
-      split_path: 'ptbxl/sub_class/ptbxl_sub_class_test.csv'
-  ###
-    ptbxl_form:
-      data_path: 'ptbxl'
-      split_path: 'ptbxl/form/ptbxl_form_test.csv'
-  ###
-    ptbxl_rhythm:
-      data_path: 'ptbxl'
-      split_path: 'ptbxl/rhythm/ptbxl_rhythm_test.csv'
-  ###
-    icbeb:
-      data_path: 'icbeb2018/records500'
-      split_path: 'icbeb/icbeb_test.csv'
-  ###
-    chapman:
-      data_path: ''
-      split_path: 'chapman/chapman_test.csv'
+  #   ptbxl_sub_class:
+  #     data_path: 'ptbxl'
+  #     split_path: 'ptbxl/sub_class/ptbxl_sub_class_test.csv'
+  # ###
+  #   ptbxl_form:
+  #     data_path: 'ptbxl'
+  #     split_path: 'ptbxl/form/ptbxl_form_test.csv'
+  # ###
+  #   ptbxl_rhythm:
+  #     data_path: 'ptbxl'
+  #     split_path: 'ptbxl/rhythm/ptbxl_rhythm_test.csv'
+  # ###
+  #   icbeb:
+  #     data_path: 'icbeb2018/records500'
+  #     split_path: 'icbeb/icbeb_test.csv'
+  # ###
+  #   chapman:
+  #     data_path: ''
+  #     split_path: 'chapman/chapman_test.csv'
 
 # your model name
 wandb_name: 'None'

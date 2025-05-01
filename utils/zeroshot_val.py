@@ -11,6 +11,10 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import roc_auc_score,precision_recall_curve,accuracy_score, f1_score
 import yaml as yaml
 import sys
+
+from scipy.special import softmax
+from sklearn.preprocessing import label_binarize
+
 sys.path.append("../finetune/")
 
 from finetune_dataset import getdataset as get_zero_dataset
@@ -29,9 +33,22 @@ def compute_AUCs(gt, pred, n_class):
     AUROCs = []
     gt_np = gt
     pred_np = pred
-    for i in range(n_class):
-        AUROCs.append(roc_auc_score(gt_np[:, i], pred_np[:, i], average='macro', multi_class='ovo'))
-    return AUROCs
+
+    # if not np.allclose(np.sum(pred_np, axis=1), 1.0, atol=1e-3):
+    #     pred_np = softmax(pred_np, axis=1)
+
+    pred_np = np.squeeze(pred_np)
+    pred_np = softmax(pred_np, axis=1)
+
+    gt_np = label_binarize(gt_np, classes=range(n_class))
+
+    # for i in range(n_class):
+        # AUROCs.append(roc_auc_score(gt_np[:, i], pred_np[:, i], average='macro', multi_class='ovo'))
+        # AUROCs.append(roc_auc_score(gt_np[:, i], pred_np[:, i]))
+
+    auc = roc_auc_score(gt_np, pred_np, multi_class='ovr', average='macro') 
+    # return AUROCs
+    return [auc]
 
 def get_class_emd(model, class_name, device='cuda'):
     model.eval()
@@ -117,7 +134,16 @@ def zeroshot_eval(model, set_name, device='cuda', args_zeroshot_eval=None):
     target_class = [prompt_dict[i] for i in class_name]
     
     print('***********************************')
-    print('zeroshot classification set is {}'.format(set_name))
+    print('zeroshot classification set is {}'.format(set_name)) 
+
+    # print("test_dataset",test_dataset[0].shape)
+    sample = test_dataset[0]
+
+# If it's a tuple (input, label)
+    data, label = sample
+
+    print("Data shape:", data.shape)
+    print("Label shape:", label.shape if hasattr(label, 'shape') else "Scalar")
     
     test_dataloader = DataLoader(
             test_dataset,
@@ -136,8 +162,15 @@ def zeroshot_eval(model, set_name, device='cuda', args_zeroshot_eval=None):
     # get class embedding
     zeroshot_weights = get_class_emd(model.module, target_class, device=device)
     # get ecg prediction
+    print("test_dataloader: ",test_dataloader)
     pred = get_ecg_emd(model.module, test_dataloader, 
                        zeroshot_weights, device=device, softmax_eval=True)
+    print("pred: ", pred )
+    
+    pred = np.expand_dims(pred, axis=0)
+
+    print("gt_shape: ",gt.shape)
+    print("pred_shape: ",pred.shape)
     
     AUROCs = compute_AUCs(gt, pred, len(target_class))
     AUROCs = [i*100 for i in AUROCs]
@@ -145,10 +178,36 @@ def zeroshot_eval(model, set_name, device='cuda', args_zeroshot_eval=None):
     
     max_f1s = []
     accs = []
-    
+
+    # print("target_Class: ",target_class)
+    # print("target_Class: ",target_class.keys())
+
+
+
+    print("AUROCs: ",AUROCs)
+
+
     for i in range(len(target_class)):   
+
+        # print(gt.shape)           # gt:  (126, 5)
+        # print(pred.shape)         # pred: (1,126,5)
+
+        if pred.shape[0] == 1:
+            pred = np.squeeze(pred, axis=0)
+
         gt_np = gt[:, i]
         pred_np = pred[:, i]
+
+        # print(gt_np.shape)         # gt_np: (126,)
+        # print(pred_np.shape)       # pred_np: (1, 5)
+
+        gt_np = gt_np.flatten()
+        pred_np = pred_np.flatten()
+
+        # print("vhdsbkjlnk")
+        # print(gt_np.shape)         # gt_np : (126,)
+        # print(pred_np.shape)       # pred_np: (5,)
+         
         precision, recall, thresholds = precision_recall_curve(gt_np, pred_np)
         numerator = 2 * recall * precision
         denom = recall + precision
@@ -164,19 +223,19 @@ def zeroshot_eval(model, set_name, device='cuda', args_zeroshot_eval=None):
     f1_avg = np.array(max_f1s).mean()    
     acc_avg = np.array(accs).mean()
 
-    res_dict = {'AUROC_avg': AUROC_avg,
+    res_dict = {
                 'F1_avg': f1_avg,
                 'ACC_avg': acc_avg
     }
     for i in range(len(target_class)):
-        res_dict.update({f'AUROC_{class_name[i]}': AUROCs[i],
+        res_dict.update({
                         f'F1_{class_name[i]}': max_f1s[i],
                         f'ACC_{class_name[i]}': accs[i]
         })
 
     print('-----------------------------------')
     print('The average AUROC is {AUROC_avg:.4f}'.format(AUROC_avg=AUROC_avg))
-    for i in range(len(target_class)):
+    for i in range(len(AUROCs)): 
         print('The AUROC of {} is {}'.format(class_name[i], AUROCs[i]))
         
     print('-----------------------------------')
@@ -190,4 +249,5 @@ def zeroshot_eval(model, set_name, device='cuda', args_zeroshot_eval=None):
         print('The ACC of {} is {}'.format(class_name[i], accs[i]))
     print('***********************************')
 
+    # print("hurray...........................")
     return f1_avg, acc_avg, AUROC_avg, max_f1s, accs, AUROCs, res_dict
