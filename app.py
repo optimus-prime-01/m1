@@ -208,10 +208,10 @@ def main():
         st.success("✅ File uploaded successfully!")
 
         with st.spinner("Loading model..."):
-            time.sleep(2.5)  # simulate model loading
+            time.sleep(60)  # simulate model loading
 
         with st.spinner("Analyzing ECG data..."):
-            time.sleep(2.5)  # simulate prediction time
+            time.sleep(50)  # simulate prediction time
 
         # Generate random mock output
         avg_auroc, auroc_hyp, avg_f1, f1_scores, avg_acc, acc_scores = generate_random_results()
