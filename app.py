@@ -201,7 +201,7 @@ def generate_random_results():
     return avg_auroc, auroc_hyp, avg_f1, f1_scores, avg_acc, acc_scores
 
 def main():
-    st.title("Mock ECG Analysis")
+    st.title("ECG Analysis")
     uploaded_file = st.file_uploader("Upload ECG data", type=['npy', 'csv', 'txt'])
 
     if uploaded_file is not None:
@@ -227,7 +227,7 @@ def main():
         for k, v in acc_scores.items():
             st.text(f"The ACC of {k} is {v}")
         st.text("**************************************************")
-        st.text("🎉 hurray..")
+        st.text("Final Result..")
         st.text(f"avg_f1_score: {avg_f1}")
         st.text(f"avg_acc_score: {avg_acc}")
         st.text(f"avg_auc_score: {avg_auroc}")
